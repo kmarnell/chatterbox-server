@@ -32,15 +32,29 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
 
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
+  var results = [];
   var headers = defaultCorsHeaders;
   if ( request.method === 'GET' ) {
     var statusCode = 200;
     headers['Content-Type'] = 'text/html';
     response.writeHead(200, headers);
+    if (request.url === '/classes/messages') {
+        response.end(JSON.stringify('GET: messages'));
+      }  
   } else if ( request.method === 'POST' ) {
     var statusCode = 201;
     headers['Content-Type'] = 'application/json';
     response.writeHead(201, headers);
+    if (request.url === '/classes/messages') {
+        var body = '';
+        request.on('data', function(chunk) {
+          body += chunk;
+        })
+        request.on('end', function() {
+          results.push(body);
+        })
+        response.end(body);
+      } 
   }
 
   // See the note below about CORS headers.
@@ -61,7 +75,8 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  // stringify something here to get it to pass. For some reason
+  response.end(JSON.stringify({ results: results }) );
 };
 
 
