@@ -31,7 +31,7 @@ this file and include it in basic-server.js so that it actually works.
   // console.logs in your code.
  
 
-var allMessages = []
+var allMessages = [];
 
 var requestHandler = function(request, response) {
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
@@ -58,6 +58,9 @@ var requestHandler = function(request, response) {
     headers['Content-Type'] = 'application/json';
     response.writeHead(201, headers);
     response.end(JSON.stringify(obj));
+  } else if ( request.method === "OPTIONS") {
+    response.writeHead(200, headers);
+    response.end();
   }
 };
 
@@ -80,9 +83,7 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  // stringify something here to get it to pass. For some reason
-
-
+  
 
 module.exports.requestHandler = requestHandler;
 
