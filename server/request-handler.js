@@ -14,7 +14,6 @@ this file and include it in basic-server.js so that it actually works.
 
 // Do stuff here
 
-var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -30,32 +29,38 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
+ 
 
+var allMessages = []
+
+var requestHandler = function(request, response) {
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
-  var results = [];
   var headers = defaultCorsHeaders;
-  if ( request.method === 'GET' ) {
-    var statusCode = 200;
+  var obj = {
+    results: allMessages
+  }
+  if (request.method === "GET") {
     headers['Content-Type'] = 'text/html';
+    if ( request.url !== '/classes/messages') {
+      response.writeHead(404, headers);
+      response.end();
+    }
     response.writeHead(200, headers);
-    if (request.url === '/classes/messages') {
-        response.end(JSON.stringify('GET: messages'));
-      }  
-  } else if ( request.method === 'POST' ) {
-    var statusCode = 201;
+    response.end(JSON.stringify(obj));
+  } else if (request.method === "POST") {
+    var body = '';
+    request.on('data', function(data) {
+      body += data; 
+    });
+    request.on('end', function() {
+      allMessages.push(JSON.parse(body))
+    });
     headers['Content-Type'] = 'application/json';
     response.writeHead(201, headers);
-    if (request.url === '/classes/messages') {
-        var body = '';
-        request.on('data', function(chunk) {
-          body += chunk;
-        })
-        request.on('end', function() {
-          results.push(body);
-        })
-        response.end(body);
-      } 
+    response.end(JSON.stringify(obj));
   }
+};
+
 
   // See the note below about CORS headers.
 
@@ -76,8 +81,7 @@ var requestHandler = function(request, response) {
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
   // stringify something here to get it to pass. For some reason
-  response.end(JSON.stringify({ results: results }) );
-};
+
 
 
 module.exports.requestHandler = requestHandler;
